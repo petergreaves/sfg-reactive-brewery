@@ -29,7 +29,7 @@
         <mapstruct.version>1.4.2.Final</mapstruct.version>
         <org.lombok.version>1.18.18</org.lombok.version>
         <!--set this to your docker acct name-->
-        <docker.image.prefix>sfgbeerworks</docker.image.prefix>
+        <docker.image.prefix>petergreaves</docker.image.prefix>
         <!--Set to name of project-->
         <docker.image.name>${project.artifactId}</docker.image.name>
     </properties>
@@ -42,6 +42,10 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -122,6 +126,7 @@
                     <compilerArgs>
                         <compilerArg>-Amapstruct.defaultComponentModel=spring</compilerArg>
                     </compilerArgs>
+                    <forceJavacCompilerUse>true</forceJavacCompilerUse>
                 </configuration>
             </plugin>
             <plugin>
