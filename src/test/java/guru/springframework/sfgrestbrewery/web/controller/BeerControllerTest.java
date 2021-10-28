@@ -5,21 +5,16 @@ import guru.springframework.sfgrestbrewery.services.BeerService;
 import guru.springframework.sfgrestbrewery.web.model.BeerDto;
 import guru.springframework.sfgrestbrewery.web.model.BeerPagedList;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.WebClient;
-
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -27,7 +22,8 @@ import java.util.UUID;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @WebFluxTest(BeerController.class)
 class BeerControllerTest {
@@ -38,7 +34,7 @@ class BeerControllerTest {
     @MockBean
     BeerService  beerService;
 
-    BeerDto validBeer, anotherValidBeer, updatedBeer;
+    BeerDto validBeer, anotherValidBeer, updatedBeer, newBeerPreSave, newBeerPostSave;
 
     BeerPagedList beerPagedList;
 
@@ -67,6 +63,23 @@ class BeerControllerTest {
                 .beerStyle("PALE_ALE")
                 .upc(BeerLoader.BEER_2_UPC)
                 .build();
+
+        newBeerPreSave = BeerDto.builder()
+                .beerName("Test beer 2 Updated")
+                .beerStyle("PALE_ALE")
+                .upc(BeerLoader.BEER_2_UPC)
+                .build();
+
+        newBeerPostSave = BeerDto.builder()
+                .id(UUID.randomUUID())
+                .beerName("Test beer 2 Updated")
+                .beerStyle("PALE_ALE")
+                .upc(BeerLoader.BEER_2_UPC)
+                .createdDate(OffsetDateTime.now())
+                .lastUpdatedDate(OffsetDateTime.now())
+                .build();
+
+
     }
 
     @Test
@@ -100,7 +113,7 @@ class BeerControllerTest {
                 .expectBody(BeerDto.class)
                 .value(beerDto -> beerDto.getBeerName(), equalTo(validBeer.getBeerName()));
 
-
+       verify(beerService, times(1)).getById(any(), any());
     }
 
 
@@ -118,11 +131,29 @@ class BeerControllerTest {
                 .expectBody(BeerDto.class)
                 .value(beerDto -> beerDto.getBeerName(), equalTo(validBeer.getBeerName()));
 
+        verify(beerService, times(1)).getByUpc(any());
+
     }
 
     @Test
-    @DisplayName("TO BE IMPLEMENTED save new beer")
+    @DisplayName("Save new beer")
     public void saveNewBeer() throws Exception {
+
+        UUID beerID = UUID.randomUUID();
+        newBeerPostSave.setId(beerID);
+        given(beerService.saveNewBeer(any())).willReturn(newBeerPostSave);
+
+        webFluxTest.post().uri("/api/v1/beer")
+                .body(BodyInserters.fromValue(validBeer))
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isCreated()
+                .expectHeader().valueEquals("Location", "http://api.springframework.guru/api/v1/beer/"+beerID.toString())
+                .expectBody().isEmpty()
+                ;
+
+        verify(beerService, times(1)).saveNewBeer(any());
+
     }
 
     @Test
@@ -138,6 +169,8 @@ class BeerControllerTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isNoContent();
+
+       verify(beerService, times(1)).updateBeer(any(), any());
 
     }
 
