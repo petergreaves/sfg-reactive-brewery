@@ -2,6 +2,7 @@ package guru.springframework.sfgrestbrewery.web.controller;
 
 import guru.springframework.sfgrestbrewery.web.model.BeerPagedList;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -30,6 +31,7 @@ public class WebClientIT {
     }
 
     @Test
+    @Disabled
     void testListBeers() throws InterruptedException {
 
         CountDownLatch countDownLatch = new CountDownLatch(1);
