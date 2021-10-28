@@ -9,18 +9,19 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.ArrayList;
+
 import java.util.List;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.*;
-//import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
 
 @WebFluxTest(BeerController.class)
 class BeerControllerTest {
@@ -104,5 +105,16 @@ class BeerControllerTest {
 
     @Test
     public void deleteBeerById() throws Exception {
+
+        UUID beerID = UUID.randomUUID();
+
+        webFluxTest.delete().uri("/api/v1/beer/" + beerID)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isNoContent()
+                .expectBody().isEmpty();
+
+        verify(beerService, times(1)).deleteBeerById(any());
+
     }
 }
