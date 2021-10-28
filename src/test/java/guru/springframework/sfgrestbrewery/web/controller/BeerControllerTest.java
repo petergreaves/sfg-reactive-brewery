@@ -79,4 +79,30 @@ class BeerControllerTest {
                 .jsonPath("$.content[1].beerStyle").isEqualTo("PALE_ALE")
                 .jsonPath("$.content.length()").isEqualTo(2);
     }
+
+    @Test
+    public void getBeerByUpc() throws Exception {
+
+        String upc  = BeerLoader.BEER_1_UPC;
+        given(beerService.getByUpc(any())).willReturn(validBeer);
+
+        webFluxTest.get().uri("/api/v1/beerUpc/" + upc)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectBody(BeerDto.class)
+                .value(beerDto -> beerDto.getBeerName(), equalTo(validBeer.getBeerName()));
+
+    }
+
+    @Test
+    public void saveNewBeer() throws Exception {
+    }
+
+    @Test
+    public void updateBeerById() throws Exception {
+    }
+
+    @Test
+    public void deleteBeerById() throws Exception {
+    }
 }
