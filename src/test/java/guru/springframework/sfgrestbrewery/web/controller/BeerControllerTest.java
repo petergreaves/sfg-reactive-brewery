@@ -53,4 +53,8 @@ class BeerControllerTest {
 
 
     }
+
+    @Test
+    public void listBeers() throws Exception {
+    }
 }
