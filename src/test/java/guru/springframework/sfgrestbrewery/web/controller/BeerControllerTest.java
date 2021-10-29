@@ -185,7 +185,7 @@ class BeerControllerTest {
         webFluxTest.delete().uri("/api/v1/beer/" + beerID)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
-                .expectStatus().isNoContent()
+                .expectStatus().isOk()
                 .expectBody().isEmpty();
 
         verify(beerService, times(1)).deleteBeerById(any());
