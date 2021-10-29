@@ -1,7 +1,7 @@
 FROM openjdk:11-jre-slim as builder
 #ENV project.build.finalName=foo
 WORKDIR application
-ADD sfg-reactive-brewery-0.0.1-SNAPSHOT.jar sfg-reactive-brewery-0.0.1-SNAPSHOT.jar
+ADD target/sfg-reactive-brewery-0.0.1-SNAPSHOT.jar sfg-reactive-brewery-0.0.1-SNAPSHOT.jar
 #ADD maven/${project.build.finalName}.jar ${project.build.finalName}.jar
 RUN java -Djarmode=layertools -jar sfg-reactive-brewery-0.0.1-SNAPSHOT.jar extract
 

@@ -10,12 +10,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -85,7 +87,7 @@ class BeerControllerTest {
     @Test
     @DisplayName("List all beers")
     public void listBeers() throws Exception {
-        beerPagedList = new BeerPagedList(List.of(validBeer, anotherValidBeer));
+        beerPagedList = new BeerPagedList(Arrays.asList(validBeer, anotherValidBeer), PageRequest.of(1,1),2);
 
         given(beerService.listBeers(any(), any(), any(), any())).willReturn(beerPagedList);
 
