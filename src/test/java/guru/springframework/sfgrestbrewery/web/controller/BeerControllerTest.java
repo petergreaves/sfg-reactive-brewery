@@ -119,7 +119,7 @@ class BeerControllerTest {
 
 
     @Test
-    @DisplayName("Get a beer by upc")
+    @DisplayName("Get a beer by UPC")
     public void getBeerByUpc() throws Exception {
 
         String upc  = BeerLoader.BEER_1_UPC;
