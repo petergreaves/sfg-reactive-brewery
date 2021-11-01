@@ -48,7 +48,6 @@ class BeerControllerTest {
     @BeforeEach
     void setUp() {
         validBeer = BeerDto.builder()
-
                 .quantityOnHand(0)
                 .price(new BigDecimal(3))
                 .beerName("Test beer")
@@ -63,6 +62,9 @@ class BeerControllerTest {
                 .beerStyle("PALE_ALE")
                 .upc(BeerLoader.BEER_2_UPC)
                 .build();
+
+
+
 
         updatedBeer = BeerDto.builder()
                 .id(1)
@@ -107,10 +109,10 @@ class BeerControllerTest {
 
     @Test
     @DisplayName("Get a beer by ID")
-    @Disabled
     public void getBeerById() throws Exception {
 
         Integer beerId = 1;
+        validBeer.setId(beerId);
         given(beerService.getById(any(), any())).willReturn(Mono.just(validBeer));
 
         webTestClient.get()
