@@ -21,7 +21,7 @@ import reactor.core.publisher.Mono;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.concurrent.CountDownLatch;
+
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.ArgumentMatchers.any;
@@ -41,13 +41,24 @@ class BeerControllerTest {
     @InjectMocks
     BeerController beerController;
 
-    BeerDto validBeer, anotherValidBeer, updatedBeer, newBeerPreSave, newBeerPostSave;
+    BeerDto validBeerForPostOrPut, validBeerForGet, anotherValidBeer, updatedBeer, newBeerPreSave, newBeerPostSave;
 
     BeerPagedList beerPagedList;
 
     @BeforeEach
     void setUp() {
-        validBeer = BeerDto.builder()
+        validBeerForGet = BeerDto.builder()
+                .id(9)
+                .quantityOnHand(0)
+                .price(new BigDecimal(3))
+                .beerName("Test beer")
+                .beerStyle("PALE_ALE")
+                .upc(BeerLoader.BEER_1_UPC)
+                .createdDate(LocalDateTime.now())
+                .lastUpdatedDate(LocalDateTime.now())
+                .build();
+
+        validBeerForPostOrPut= BeerDto.builder()
                 .quantityOnHand(0)
                 .price(new BigDecimal(3))
                 .beerName("Test beer")
@@ -62,9 +73,6 @@ class BeerControllerTest {
                 .beerStyle("PALE_ALE")
                 .upc(BeerLoader.BEER_2_UPC)
                 .build();
-
-
-
 
         updatedBeer = BeerDto.builder()
                 .id(1)
@@ -87,14 +95,12 @@ class BeerControllerTest {
                 .createdDate(LocalDateTime.now())
                 .lastUpdatedDate(LocalDateTime.now())
                 .build();
-
-        //        webFluxTest = WebTestClient.bindToController(BeerController.class).build();
     }
 
     @Test
     @DisplayName("List all beers")
     public void listBeers() throws Exception {
-        beerPagedList = new BeerPagedList(Arrays.asList(validBeer, anotherValidBeer), PageRequest.of(1,1),2);
+        beerPagedList = new BeerPagedList(Arrays.asList(validBeerForGet, anotherValidBeer), PageRequest.of(1,1),2);
 
         given(beerService.listBeers(any(), any(), any(), any())).willReturn(Mono.just(beerPagedList));
 
@@ -111,17 +117,15 @@ class BeerControllerTest {
     @DisplayName("Get a beer by ID")
     public void getBeerById() throws Exception {
 
-        Integer beerId = 1;
-        validBeer.setId(beerId);
-        given(beerService.getById(any(), any())).willReturn(Mono.just(validBeer));
+        given(beerService.getById(any(), any())).willReturn(Mono.just(validBeerForGet));
 
         webTestClient.get()
-                .uri("/api/v1/beer/"+ beerId)
+                .uri("/api/v1/beer/1")
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody(BeerDto.class)
-                .value(beerDto -> beerDto.getBeerName(), equalTo(validBeer.getBeerName()));
+                .value(beerDto -> beerDto.getBeerName(), equalTo(validBeerForGet.getBeerName()));
 
         verify(beerService, times(1)).getById(any(), any());
     }
@@ -131,14 +135,14 @@ class BeerControllerTest {
     public void getBeerByUpc() throws Exception {
 
         String upc  = BeerLoader.BEER_1_UPC;
-        given(beerService.getByUpc(any())).willReturn(Mono.just(validBeer));
+        given(beerService.getByUpc(any())).willReturn(Mono.just(validBeerForGet));
 
         webTestClient.get()
                 .uri("/api/v1/beerUpc/" + upc)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectBody(BeerDto.class)
-                .value(beerDto -> beerDto.getBeerName(), equalTo(validBeer.getBeerName()));
+                .value(beerDto -> beerDto.getBeerName(), equalTo(validBeerForGet.getBeerName()));
 
         verify(beerService, times(1)).getByUpc(any());
 
@@ -153,7 +157,7 @@ class BeerControllerTest {
         given(beerService.saveNewBeer(any())).willReturn(Mono.just(newBeerPostSave));
 
         webTestClient.post().uri("/api/v1/beer")
-                .body(BodyInserters.fromValue(validBeer))
+                .body(BodyInserters.fromValue(validBeerForPostOrPut))
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isCreated()
@@ -166,21 +170,20 @@ class BeerControllerTest {
     }
 
     @Test
-    @DisplayName("Update beer")
+    @DisplayName("Update a beer")
     public void updateBeerById() throws Exception {
 
         Integer beerID = 1;
 
-        given(beerService.updateBeer(beerID, validBeer)).willReturn(Mono.just(updatedBeer));
+        given(beerService.updateBeer(beerID, validBeerForPostOrPut)).willReturn(Mono.just(updatedBeer));
 
-        webTestClient.put().uri("/api/v1/beer/" + beerID)
-                .body(BodyInserters.fromValue(validBeer))
+        webTestClient.put().uri("/api/v1/beer/1")
+                .body(BodyInserters.fromValue(validBeerForPostOrPut))
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isNoContent();
 
        verify(beerService, times(1)).updateBeer(any(), any());
-
     }
 
     @Test
