@@ -87,4 +87,45 @@ public class WebClientV2IT {
         assertThat(countDownLatch.getCount()).isEqualTo(0);
     }
 
+
+    @Test
+    void testGetBeerByUPC() throws InterruptedException {
+
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+
+        Mono<BeerDto> beerDtoMono = webClient.get().uri(BASE_URL+"/" + BeerRouterConfig.BEER_BY_UPC_PATH_V2+"/"+BeerLoader.BEER_1_UPC)
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve().bodyToMono(BeerDto.class);
+
+        beerDtoMono.subscribe(beerDto -> {
+            Assertions.assertNotNull(beerDto);
+            Assertions.assertEquals(beerDto.getUpc(), BeerLoader.BEER_1_UPC);
+            countDownLatch.countDown();
+        });
+
+        countDownLatch.await(1000, TimeUnit.MILLISECONDS);
+
+        assertThat(countDownLatch.getCount()).isEqualTo(0);
+    }
+
+    @Test
+    void testGetBeerByUPCNotFound() throws InterruptedException {
+
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+
+        Mono<BeerDto> beerDtoMono = webClient.get().uri(BASE_URL+"/" +BeerRouterConfig.BEER_BY_UPC_PATH_V2+"/abc")
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve().bodyToMono(BeerDto.class);
+
+        beerDtoMono.subscribe(beerDto -> {
+                },
+                throwable -> {
+                    countDownLatch.countDown();
+                });
+
+        countDownLatch.await(1000, TimeUnit.MILLISECONDS);
+
+        assertThat(countDownLatch.getCount()).isEqualTo(0);
+    }
+
 }
