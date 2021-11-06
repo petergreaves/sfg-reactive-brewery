@@ -77,7 +77,7 @@ public class BeerController {
     public ResponseEntity saveNewBeer(@RequestBody @Validated BeerDto beerDto) {
 
         AtomicInteger atomicIntegerBeerID = new AtomicInteger();
-        beerService.saveNewBeer(beerDto).subscribe(newBeer -> atomicIntegerBeerID.set(newBeer.getId()));
+        beerService.saveBeer(beerDto).subscribe(newBeer -> atomicIntegerBeerID.set(newBeer.getId()));
 
         return ResponseEntity
                 .created(UriComponentsBuilder

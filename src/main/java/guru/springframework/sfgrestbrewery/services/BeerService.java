@@ -16,7 +16,10 @@ public interface BeerService {
 
     Mono<BeerDto> getById(Integer beerId, Boolean showInventoryOnHand);
 
-    Mono<BeerDto> saveNewBeer(BeerDto beerDto);
+    Mono<BeerDto> saveBeer(BeerDto beerDto);
+
+    Mono<BeerDto> saveBeerMono(Mono<BeerDto> beerDto);
+
 
     Mono<BeerDto> updateBeer(Integer beerId, BeerDto beerDto);
 

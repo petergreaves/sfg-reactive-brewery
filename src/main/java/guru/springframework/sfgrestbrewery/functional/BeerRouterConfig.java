@@ -16,14 +16,26 @@ public class BeerRouterConfig {
     public static final String BEER_BY_UPC_PATH_V2 = "api/v2/beerUpc";
 
     @Bean
-    public RouterFunction<ServerResponse> beerRouterV2(BeerHandlerV2 beerHandlerV2){
-
-        return route().GET(BEER_PATH_V2+"/{beerId}", accept(APPLICATION_JSON), beerHandlerV2::getBeerById).build();
+    public RouterFunction<ServerResponse> beerRoutesV2(BeerHandlerV2 beerHandlerV2){
+        return route().GET(BEER_PATH_V2+"/{beerId}", accept(APPLICATION_JSON), beerHandlerV2::getBeerById)
+                .GET(BEER_BY_UPC_PATH_V2+"/{beerUpc}", accept(APPLICATION_JSON), beerHandlerV2::getBeerByUpc)
+                .POST(BEER_PATH_V2, accept(APPLICATION_JSON), beerHandlerV2::saveBeer)
+                .build();
     }
 
-    @Bean
-    public RouterFunction<ServerResponse> beerByUpcRouterV2(BeerHandlerV2 beerHandlerV2){
+//    @Bean
+//    public RouterFunction<ServerResponse> saveBeer(BeerHandlerV2 beerHandlerV2){
+//        return route().POST(BEER_PATH_V2, accept(APPLICATION_JSON), beerHandlerV2::saveBeer).build();
+//    }
+//
+//    @Bean
+//    public RouterFunction<ServerResponse> beerByUpcRouterV2(BeerHandlerV2 beerHandlerV2){
+//        return route().GET(BEER_BY_UPC_PATH_V2+"/{beerUpc}", accept(APPLICATION_JSON), beerHandlerV2::getBeerByUpc).build();
+//    }
 
-        return route().GET(BEER_BY_UPC_PATH_V2+"/{beerUpc}", accept(APPLICATION_JSON), beerHandlerV2::getBeerByUpc).build();
-    }
+//    @Bean
+//    public RouterFunction<ServerResponse> saveBeerRouterV2(BeerHandlerV2 beerHandlerV2){
+//
+//        return route().POST(BEER_BY_UPC_PATH_V2, accept(APPLICATION_JSON), beerHandlerV2::sgetBeerByUpc).build();
+//    }
 }

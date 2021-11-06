@@ -79,7 +79,14 @@ public class BeerServiceImpl implements BeerService {
     }
 
     @Override
-    public Mono<BeerDto> saveNewBeer(BeerDto beerDto) {
+    public Mono<BeerDto> saveBeerMono(Mono<BeerDto> beerDto) {
+        return beerDto.map(beerMapper::beerDtoToBeer)
+                .flatMap(beerRepository::save)
+                .map(beerMapper::beerToBeerDto);
+    }
+
+    @Override
+    public Mono<BeerDto> saveBeer(BeerDto beerDto) {
         return beerRepository.save(beerMapper.beerDtoToBeer(beerDto)).map(beerMapper::beerToBeerDto);
     }
 
@@ -94,8 +101,8 @@ public class BeerServiceImpl implements BeerService {
                     foundBeer.setUpc(beerDto.getUpc());
                     foundBeer.setPrice(beerDto.getPrice());
                     return foundBeer;
-                }).flatMap(updatedBeer ->{
-                    if (updatedBeer.getId()!=null) {
+                }).flatMap(updatedBeer -> {
+                    if (updatedBeer.getId() != null) {
                         return beerRepository.save(updatedBeer);
                     }
                     return Mono.just(updatedBeer);  // will be a beer set to nulls

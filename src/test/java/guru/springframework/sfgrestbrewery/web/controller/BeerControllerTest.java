@@ -154,7 +154,7 @@ class BeerControllerTest {
 
         Integer beerID = 1;
         newBeerPostSave.setId(beerID);
-        given(beerService.saveNewBeer(any())).willReturn(Mono.just(newBeerPostSave));
+        given(beerService.saveBeer(any())).willReturn(Mono.just(newBeerPostSave));
 
         webTestClient.post().uri("/api/v1/beer")
                 .body(BodyInserters.fromValue(validBeerForPostOrPut))
@@ -165,7 +165,7 @@ class BeerControllerTest {
                 .expectBody().isEmpty()
                 ;
 
-        verify(beerService, times(1)).saveNewBeer(any());
+        verify(beerService, times(1)).saveBeer(any());
 
     }
 

@@ -4,6 +4,7 @@ import guru.springframework.sfgrestbrewery.bootstrap.BeerLoader;
 import guru.springframework.sfgrestbrewery.functional.BeerRouterConfig;
 import guru.springframework.sfgrestbrewery.web.model.BeerDto;
 import guru.springframework.sfgrestbrewery.web.model.BeerPagedList;
+import guru.springframework.sfgrestbrewery.web.model.BeerStyleEnum;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -126,6 +127,72 @@ public class WebClientV2IT {
         countDownLatch.await(1000, TimeUnit.MILLISECONDS);
 
         assertThat(countDownLatch.getCount()).isEqualTo(0);
+    }
+
+
+    @Test
+    public void testSaveNewValidBeer() throws InterruptedException {
+
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+
+        BeerDto newBeer = BeerDto.builder()
+                .beerName("New beer tests")
+                .beerStyle("PALE_ALE")
+                .price(new BigDecimal(2.0))
+                .upc("ABC")
+                .build();
+
+        Mono<ResponseEntity<Void>> beerResponseMono = webClient.post()
+                .uri(BASE_URL+"/" +BeerRouterConfig.BEER_PATH_V2)
+                .accept(MediaType.APPLICATION_JSON)
+                .bodyValue(BodyInserters.fromValue(newBeer))
+                .retrieve().toBodilessEntity();
+
+        beerResponseMono.publishOn(Schedulers.parallel()).subscribe(responseEntity ->{
+                Assertions.assertNotNull(responseEntity.getHeaders().get("location"));
+                Assertions.assertTrue(responseEntity.getStatusCode().is2xxSuccessful());
+                countDownLatch.countDown();
+        });
+
+        countDownLatch.await(1000, TimeUnit.MILLISECONDS);
+        Assertions.assertEquals(countDownLatch.getCount(),0);
+
+
+    }
+
+
+    @Test
+    @Disabled
+    public void testSaveNewInvalidBeerThrowsClientError() throws InterruptedException {
+
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+
+        BeerDto invalidBeer = BeerDto.builder()
+                .price(new BigDecimal(2.0))
+                .build();
+
+        Mono<ResponseEntity<Void>> beerResponseMono = webClient.post()
+                .uri(BASE_URL+"/" +BeerRouterConfig.BEER_PATH_V2)
+                .accept(MediaType.APPLICATION_JSON)
+                .bodyValue(BodyInserters.fromValue(invalidBeer))
+                .retrieve().toBodilessEntity();
+
+        beerResponseMono.subscribe(responseEntity -> {
+            // nothing on success
+        }, throwable -> {
+            if (throwable.getClass().getName().equals("org.springframework.web.reactive.function.client.WebClientResponseException$BadRequest")){
+                WebClientResponseException ex = (WebClientResponseException) throwable;
+
+                if (ex.getStatusCode().equals(HttpStatus.BAD_REQUEST)){
+                    countDownLatch.countDown();
+                }
+            }
+        });
+
+        countDownLatch.await(2000, TimeUnit.MILLISECONDS);
+        assertThat(countDownLatch.getCount()).isEqualTo(0);
+
+
     }
 
 }
