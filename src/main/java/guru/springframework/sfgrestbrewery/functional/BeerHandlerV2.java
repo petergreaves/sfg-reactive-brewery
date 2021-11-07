@@ -6,8 +6,12 @@ import guru.springframework.sfgrestbrewery.web.model.BeerDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.validation.Errors;
+import org.springframework.validation.Validator;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import org.springframework.web.server.ServerWebInputException;
 import reactor.core.publisher.Mono;
 
 import static guru.springframework.sfgrestbrewery.functional.BeerRouterConfig.BEER_PATH_V2;
@@ -18,6 +22,7 @@ import static guru.springframework.sfgrestbrewery.functional.BeerRouterConfig.BE
 public class BeerHandlerV2 {
 
     private final BeerService beerService;
+    private final Validator validator;
 
     public Mono<ServerResponse> getBeerById(ServerRequest serverRequest) {
 
@@ -44,7 +49,7 @@ public class BeerHandlerV2 {
 
     public Mono<ServerResponse> saveBeer(ServerRequest serverRequest) {
 
-        Mono<BeerDto> beerToSave = serverRequest.bodyToMono(BeerDto.class);
+        Mono<BeerDto> beerToSave = serverRequest.bodyToMono(BeerDto.class).doOnNext(this::validate);
 
         return beerService.saveBeerMono(beerToSave)
                 .flatMap(beerDto -> {
@@ -53,5 +58,14 @@ public class BeerHandlerV2 {
                             .header("location", BEER_PATH_V2 + "/" + beerDto.getId())
                             .build();
                 });
+    }
+
+    private void validate(BeerDto beerDto){
+        Errors errors=new BeanPropertyBindingResult(BeerDto.class, "beerDto");
+        validator.validate(beerDto, errors);
+        if (errors.hasErrors()){
+            System.out.println(errors.toString());
+            throw new ServerWebInputException(errors.toString());
+        }
     }
 }
