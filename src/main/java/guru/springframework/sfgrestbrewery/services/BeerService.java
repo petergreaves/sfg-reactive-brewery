@@ -15,14 +15,9 @@ public interface BeerService {
     Mono<BeerPagedList> listBeers(String beerName, BeerStyleEnum beerStyle, PageRequest pageRequest, Boolean showInventoryOnHand);
 
     Mono<BeerDto> getById(Integer beerId, Boolean showInventoryOnHand);
-
     Mono<BeerDto> saveBeer(BeerDto beerDto);
-
     Mono<BeerDto> saveBeerMono(Mono<BeerDto> beerDto);
-
-
     Mono<BeerDto> updateBeer(Integer beerId, BeerDto beerDto);
-
     Mono<BeerDto> getByUpc(String upc);
 
     void deleteBeerById(Integer beerId);

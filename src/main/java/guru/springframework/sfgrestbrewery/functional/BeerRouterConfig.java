@@ -20,6 +20,7 @@ public class BeerRouterConfig {
         return route().GET(BEER_PATH_V2+"/{beerId}", accept(APPLICATION_JSON), beerHandlerV2::getBeerById)
                 .GET(BEER_BY_UPC_PATH_V2+"/{beerUpc}", accept(APPLICATION_JSON), beerHandlerV2::getBeerByUpc)
                 .POST(BEER_PATH_V2, accept(APPLICATION_JSON), beerHandlerV2::saveBeer)
+                .PUT(BEER_PATH_V2+"/{beerId}", accept(APPLICATION_JSON), beerHandlerV2::updateBeer)
                 .build();
     }
 }

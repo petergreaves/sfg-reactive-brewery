@@ -60,10 +60,36 @@ public class BeerHandlerV2 {
                 });
     }
 
-    private void validate(BeerDto beerDto){
-        Errors errors=new BeanPropertyBindingResult(BeerDto.class, "beerDto");
+    public Mono<ServerResponse> updateBeer(ServerRequest serverRequest) {
+
+
+        Integer beerID = Integer.valueOf(serverRequest.pathVariable("beerId"));
+        return serverRequest
+                .bodyToMono(BeerDto.class)
+                .doOnNext(this::validate)
+                .flatMap(beerToUpdate -> {
+                            return beerService.updateBeer(beerID, beerToUpdate);
+                        }
+                )
+                .flatMap(savedBeerDto -> {
+                    if (savedBeerDto.getId() != null) {
+                        return ServerResponse
+                                .noContent()
+                                .build();
+                    } else {
+                        log.debug("Beer ID not found {} ", beerID);
+                        return ServerResponse
+                                .notFound()
+                                .build();
+                    }
+                });
+    }
+
+
+    private void validate(BeerDto beerDto) {
+        Errors errors = new BeanPropertyBindingResult(BeerDto.class, "beerDto");
         validator.validate(beerDto, errors);
-        if (errors.hasErrors()){
+        if (errors.hasErrors()) {
             System.out.println(errors.toString());
             throw new ServerWebInputException(errors.toString());
         }
