@@ -21,4 +21,5 @@ public interface BeerService {
     Mono<BeerDto> getByUpc(String upc);
 
     void deleteBeerById(Integer beerId);
+    Mono<Void> deleteBeerByIdReactive(Integer beerId);
 }

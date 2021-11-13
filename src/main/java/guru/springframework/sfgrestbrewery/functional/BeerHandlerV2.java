@@ -2,6 +2,7 @@ package guru.springframework.sfgrestbrewery.functional;
 
 
 import guru.springframework.sfgrestbrewery.services.BeerService;
+import guru.springframework.sfgrestbrewery.web.controller.NotFoundException;
 import guru.springframework.sfgrestbrewery.web.model.BeerDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +37,7 @@ public class BeerHandlerV2 {
 
     }
 
+
     public Mono<ServerResponse> getBeerByUpc(ServerRequest serverRequest) {
 
         String beerUpc = String.valueOf(serverRequest.pathVariable("beerUpc"));
@@ -63,12 +65,12 @@ public class BeerHandlerV2 {
     public Mono<ServerResponse> updateBeer(ServerRequest serverRequest) {
 
 
-        Integer beerID = Integer.valueOf(serverRequest.pathVariable("beerId"));
+        Integer beerId = Integer.valueOf(serverRequest.pathVariable("beerId"));
         return serverRequest
                 .bodyToMono(BeerDto.class)
                 .doOnNext(this::validate)
                 .flatMap(beerToUpdate -> {
-                            return beerService.updateBeer(beerID, beerToUpdate);
+                            return beerService.updateBeer(beerId, beerToUpdate);
                         }
                 )
                 .flatMap(savedBeerDto -> {
@@ -77,7 +79,7 @@ public class BeerHandlerV2 {
                                 .noContent()
                                 .build();
                     } else {
-                        log.debug("Beer ID not found {} ", beerID);
+                        log.debug("Beer ID not found {} ", beerId);
                         return ServerResponse
                                 .notFound()
                                 .build();
@@ -85,6 +87,19 @@ public class BeerHandlerV2 {
                 });
     }
 
+
+    public Mono<ServerResponse> deleteBeer(ServerRequest serverRequest) {
+
+        Integer beerId = Integer.valueOf(serverRequest.pathVariable("beerId"));
+
+        return beerService.deleteBeerByIdReactive(beerId)
+                .flatMap(monoVoid ->{
+                        return ServerResponse.noContent().build();  //ok
+                })
+                .onErrorResume(e -> e instanceof NotFoundException, e->ServerResponse.notFound().build());
+
+
+    }
 
     private void validate(BeerDto beerDto) {
         Errors errors = new BeanPropertyBindingResult(BeerDto.class, "beerDto");

@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -26,6 +27,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
 /**
@@ -131,7 +133,6 @@ public class WebClientV2IT {
 
 
     @Test
-    @Disabled //for circleci
     public void testSaveNewValidBeer() throws InterruptedException {
 
         CountDownLatch countDownLatch = new CountDownLatch(1);
@@ -143,10 +144,19 @@ public class WebClientV2IT {
                 .upc("ABC")
                 .build();
 
+        // for some reason, this version (BodyInserters) sends a
+        // dto with null fields...
+//        Mono<ResponseEntity<Void>> beerResponseMono = webClient.post()
+//                .uri(BeerRouterConfig.BEER_PATH_V2)
+//                .accept(MediaType.APPLICATION_JSON)
+//                .bodyValue(BodyInserters.fromValue(newBeer))
+//                .retrieve().toBodilessEntity();
+
+        // but this one works!
         Mono<ResponseEntity<Void>> beerResponseMono = webClient.post()
                 .uri(BeerRouterConfig.BEER_PATH_V2)
                 .accept(MediaType.APPLICATION_JSON)
-                .bodyValue(BodyInserters.fromValue(newBeer))
+                .bodyValue(newBeer)
                 .retrieve().toBodilessEntity();
 
         beerResponseMono.publishOn(Schedulers.parallel()).subscribe(responseEntity -> {
@@ -270,4 +280,40 @@ public class WebClientV2IT {
         assertThat(countDownLatch.getCount()).isEqualTo(0);
     }
 
+
+    @Test
+    void testDeleteBeer() {
+        Integer beerId = 3;
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+
+        webClient.delete().uri(BeerRouterConfig.BEER_PATH_V2 +"/"+ beerId)
+                .retrieve().toBodilessEntity()
+                .flatMap(responseEntity -> {
+                    countDownLatch.countDown();
+
+                    return webClient.get().uri(BeerRouterConfig.BEER_PATH_V2 +"/"+ beerId)
+                            .accept(MediaType.APPLICATION_JSON)
+                            .retrieve().bodyToMono(BeerDto.class);
+                }).subscribe(savedDto -> {
+
+        }, throwable -> {
+            countDownLatch.countDown();
+        });
+    }
+
+    @Test
+    void testDeleteBeerNotFound() {
+        Integer beerId = 4;
+
+        // delete it
+        webClient.delete().uri("/api/v2/beer/" + beerId)
+               .retrieve().toBodilessEntity().block();
+
+        // try to delete it again
+        assertThrows(WebClientResponseException.NotFound.class, () -> {
+            webClient.delete().uri("/api/v2/beer/" + beerId)
+                    .retrieve().toBodilessEntity().block();
+        });
+    }
 }
+
